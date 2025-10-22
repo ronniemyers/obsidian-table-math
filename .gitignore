@@ -1,0 +1,12 @@
+*.log
+npm-debug.log*
+node_modules
+main.js
+main.js.map
+*.js.map
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+data.json
+test

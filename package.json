@@ -1,0 +1,33 @@
+{
+  "name": "obsidian-table-math",
+  "version": "1.0.0",
+  "description": "Spreadsheet-style table formulas for notes.",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit && node esbuild.config.mjs production",
+    "bump": "node version-bump.mjs && git add package.json manifest.json versions.json"
+  },
+  "keywords": [
+    "obsidian",
+    "markdown",
+    "tables",
+    "math",
+    "formulas",
+    "plugin"
+  ],
+  "author": "Ronnie Myers",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.43.0",
+    "@typescript-eslint/parser": "^8.43.0",
+    "esbuild": "0.17.3",
+    "globals": "^16.4.0",
+    "obsidian": "latest",
+    "typescript": "^5.0.0"
+  }
+}
+
