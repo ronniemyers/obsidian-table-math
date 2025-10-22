@@ -5,24 +5,19 @@ Perform spreadsheet-like calculations directly in your markdown tables with live
 ![Demo](media/demo.gif)
 
 ## Table of Contents
-
-- [Obsidian Table Math](#obsidian-table-math)
-  - [Table of Contents](#table-of-contents)
-  - [Features](#features)
-  - [Quick Start](#quick-start)
-    - [Editing Mode](#editing-mode)
-    - [Preview Mode](#preview-mode)
-  - [Formulas](#formulas)
-    - [Basic Functions](#basic-functions)
-    - [Data Modifier](#data-modifier)
-    - [Arithmetic Expressions](#arithmetic-expressions)
-    - [Complex Expressions](#complex-expressions)
-    - [Cross-Note References](#cross-note-references)
-  - [Currency Support](#currency-support)
-    - [Example](#example)
-  - [Cross-Note References](#cross-note-references-1)
-  - [Settings](#settings)
-  - [License](#license)
+- [Features](#features)
+- [Quick Start](#quick-start)
+  - [Editing Mode](#editing-mode)
+  - [Preview Mode](#preview-mode)
+- [Formulas](#formulas)
+  - [Basic Functions](#basic-functions)
+  - [Data Modifier](#data-modifier)
+  - [Arithmetic Expressions](#arithmetic-expressions)
+  - [Complex Expressions](#complex-expressions)
+- [Currency Support](#currency-support)
+- [Cross-Note References](#cross-note-references)
+- [Settings](#settings)
+- [License](#license)
 
 ## Features
 
@@ -114,10 +109,6 @@ Combine functions with arithmetic operations:
 - `=(SUM(col)+SUM(row))/2` - Average of column and row sums
 - `=SUM(col, USD)/2` - Currency formatting with complex expressions
 
-### Cross-Note References
-
-- `=NOTE("Other Note").total` - Pull values from other notes
-
 ## Currency Support
 
 Add currency codes to format results automatically:
@@ -127,8 +118,6 @@ Add currency codes to format results automatically:
 | `=SUM(col, USD)` | **$100.00** |
 | `=AVG(row, EUR)` | **€50.00**  |
 | `=MAX(col, GBP)` | **£200.00** |
-
-### Example
 
 ```markdown
 | Service       | Cost (EUR)     |
