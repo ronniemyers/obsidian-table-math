@@ -42,7 +42,6 @@ export default class TableMathPlugin extends Plugin {
 		let indexed = 0;
 		let skipped = 0;
 		
-		// Process files in batches to avoid blocking
 		const BATCH_SIZE = 50;
 		for (let i = 0; i < files.length; i += BATCH_SIZE) {
 			const batch = files.slice(i, i + BATCH_SIZE);
@@ -51,7 +50,6 @@ export default class TableMathPlugin extends Plugin {
 				try {
 					const content = await this.app.vault.read(file);
 					
-					// Quick check: skip files without tables or formulas
 					if (!content.includes('|') || !content.includes('=')) {
 						skipped++;
 						return;
