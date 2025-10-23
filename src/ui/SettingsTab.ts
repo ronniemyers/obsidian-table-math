@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, TextComponent } from 'obsidian';
 
 import type TableMathPlugin from '../main';
 
@@ -15,10 +15,10 @@ export class TableMathSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		new Setting(containerEl)
-			.setName('Precision')
-			.setDesc('Number of decimal places to display (0-10)')
-			.addText((text: any) => text
+	new Setting(containerEl)
+		.setName('Precision')
+		.setDesc('Number of decimal places to display (0-10)')
+		.addText((text: TextComponent) => text
 				.setPlaceholder('2')
 				.setValue(String(this.plugin.settings.precision))
 				.onChange(async (value: string) => {
@@ -30,10 +30,10 @@ export class TableMathSettingTab extends PluginSettingTab {
 					}
 				}));
 
-		new Setting(containerEl)
-			.setName('Locale')
-			.setDesc('Locale for number formatting (en-US, de-DE, fr-FR)')
-			.addText((text: any) => text
+	new Setting(containerEl)
+		.setName('Locale')
+		.setDesc('Locale for number formatting (en-US, de-DE, fr-FR)')
+		.addText((text: TextComponent) => text
 				.setPlaceholder('en-US')
 				.setValue(this.plugin.settings.locale)
 				.onChange(async (value: string) => {
@@ -43,4 +43,3 @@ export class TableMathSettingTab extends PluginSettingTab {
 				}));
 	}
 }
-

@@ -1,6 +1,6 @@
-import { Editor, MarkdownView, Plugin, TFile } from 'obsidian';
+import { Editor, MarkdownView, Plugin, TFile, MarkdownPostProcessorContext } from 'obsidian';
 
-import { TableMathSettings, DEFAULT_SETTINGS } from './types';
+import { TableMathSettings, DEFAULT_SETTINGS, TableCell } from './types';
 import { VaultIndexManager } from './managers/VaultIndexManager';
 import { FormulaEvaluator } from './processors/FormulaEvaluator';
 import { TableRecalculator } from './processors/TableRecalculator';
@@ -57,25 +57,25 @@ export default class TableMathPlugin extends Plugin {
 						return;
 					}
 					
-					if (content.includes('=SUM(') || content.includes('=AVG(') || 
-					    content.includes('=MIN(') || content.includes('=MAX(') ||
-					    content.includes('=NOTE(')) {
-						const editor = {
-							getValue: () => content,
-							setValue: () => {},
-							getCursor: () => ({ line: 0, ch: 0 }),
-							setCursor: () => {},
-							getScrollInfo: () => ({ top: 0, left: 0 }),
-							scrollTo: () => {}
-						} as any;
-						
-						const view = {
-							file,
-							editor
-						} as any;
-						
-						await this.recalculator.recalculateCurrentNote(editor, view, true);
-						indexed++;
+				if (content.includes('=SUM(') || content.includes('=AVG(') || 
+				    content.includes('=MIN(') || content.includes('=MAX(') ||
+				    content.includes('=NOTE(')) {
+					const editor: Partial<Editor> = {
+						getValue: () => content,
+						setValue: () => {},
+						getCursor: () => ({ line: 0, ch: 0 }),
+						setCursor: () => {},
+						getScrollInfo: () => ({ top: 0, left: 0 }),
+						scrollTo: () => {}
+					};
+					
+					const view: Partial<MarkdownView> = {
+						file,
+						editor: editor as Editor
+					};
+					
+					await this.recalculator.recalculateCurrentNote(editor as Editor, view as MarkdownView, true);
+					indexed++;
 					} else {
 						skipped++;
 					}
@@ -111,33 +111,33 @@ export default class TableMathPlugin extends Plugin {
 							return;
 						}
 						
-						if (content.includes('=SUM(') || content.includes('=AVG(') || 
-						    content.includes('=MIN(') || content.includes('=MAX(') ||
-						    content.includes('=NOTE(')) {
-							const editor = {
-								getValue: () => content,
-								setValue: () => {},
-								getCursor: () => ({ line: 0, ch: 0 }),
-								setCursor: () => {},
-								getScrollInfo: () => ({ top: 0, left: 0 }),
-								scrollTo: () => {}
-							} as any;
-							
-							const view = {
-								file,
-								editor
-							} as any;
-						
-						await this.recalculator.recalculateCurrentNote(editor, view, true);
-					}
-				} catch (error) {
-				}
+				if (content.includes('=SUM(') || content.includes('=AVG(') || 
+				    content.includes('=MIN(') || content.includes('=MAX(') ||
+				    content.includes('=NOTE(')) {
+					const editor: Partial<Editor> = {
+						getValue: () => content,
+						setValue: () => {},
+						getCursor: () => ({ line: 0, ch: 0 }),
+						setCursor: () => {},
+						getScrollInfo: () => ({ top: 0, left: 0 }),
+						scrollTo: () => {}
+					};
+					
+					const view: Partial<MarkdownView> = {
+						file,
+						editor: editor as Editor
+					};
+				
+				await this.recalculator.recalculateCurrentNote(editor as Editor, view as MarkdownView, true);
 			}
-			})
-		);
-	}
+			} catch (error) {
+			}
+		}
+		})
+	);
+}
 
-	private processTablePreview(element: HTMLElement, context: any): void {
+	private processTablePreview(element: HTMLElement, context: MarkdownPostProcessorContext): void {
 		try {
 			const tables = element.querySelectorAll('table');
 			if (tables.length === 0) return;
@@ -163,11 +163,11 @@ export default class TableMathPlugin extends Plugin {
 
 			const evaluator = new FormulaEvaluator(this.settings, this.indexManager);
 			
-			const firstRow = tableData[0] || [];
-			const firstRowNumbers = firstRow.filter(c => !isNaN(parseFloat(c)) && isFinite(parseFloat(c)));
-			const isFirstRowHeader = firstRowNumbers.length < firstRow.length / 2;
-			
-			const tableRows: any[][] = tableData.map((rowData, r) => 
+		const firstRow = tableData[0] || [];
+		const firstRowNumbers = firstRow.filter(c => !isNaN(parseFloat(c)) && isFinite(parseFloat(c)));
+		const isFirstRowHeader = firstRowNumbers.length < firstRow.length / 2;
+		
+		const tableRows: TableCell[][] = tableData.map((rowData, r) =>
 				rowData.map((c, col) => {
 					if (isFirstRowHeader && r === 0) {
 						return {
