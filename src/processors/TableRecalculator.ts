@@ -6,169 +6,199 @@ import { FormulaEvaluator } from './FormulaEvaluator';
 import { TableProcessor } from './TableProcessor';
 
 export class TableRecalculator {
-	private app: App;
-	private settings: TableMathSettings;
-	private indexManager: VaultIndexManager;
-	private processor: TableProcessor;
-	private debounceTimer: number | null = null;
-	private contentHashCache: Map<string, string> = new Map();
-	private tableCache: Map<string, { hash: string; processed: string[] }> = new Map();
+  private app: App;
+  private settings: TableMathSettings;
+  private indexManager: VaultIndexManager;
+  private processor: TableProcessor;
+  private debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private contentHashCache: Map<string, string> = new Map();
+  private tableCache: Map<string, { hash: string; processed: string[] }> =
+    new Map();
 
-	constructor(app: App, settings: TableMathSettings, indexManager: VaultIndexManager) {
-		this.app = app;
-		this.settings = settings;
-		this.indexManager = indexManager;
-		
-		const evaluator = new FormulaEvaluator(settings, indexManager);
-		this.processor = new TableProcessor(evaluator);
-	}
+  constructor(
+    app: App,
+    settings: TableMathSettings,
+    indexManager: VaultIndexManager
+  ) {
+    this.app = app;
+    this.settings = settings;
+    this.indexManager = indexManager;
 
-	debounceRecalc(editor: Editor, view: MarkdownView): void {
-		if (this.debounceTimer) {
-			window.clearTimeout(this.debounceTimer);
-		}
-		this.debounceTimer = window.setTimeout(() => {
-			this.recalculateCurrentNote(editor, view, true);
-		}, 500);
-	}
+    const evaluator = new FormulaEvaluator(settings, indexManager);
+    this.processor = new TableProcessor(evaluator);
+  }
 
-	private simpleHash(str: string): string {
-		let hash = 0;
-		for (let i = 0; i < str.length; i++) {
-			const char = str.charCodeAt(i);
-			hash = ((hash << 5) - hash) + char;
-			hash = hash & hash;
-		}
-		return hash.toString(36);
-	}
+  debounceRecalc(editor: Editor, view: MarkdownView): void {
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    this.debounceTimer = setTimeout(() => {
+      this.recalculateCurrentNote(editor, view, true);
+    }, 500);
+  }
 
-	private findTableAtCursor(lines: string[], cursorLine: number): { start: number; end: number } | null {
-		let start = cursorLine;
-		let end = cursorLine;
+  private simpleHash(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = (hash << 5) - hash + char;
+      hash = hash & hash;
+    }
+    return hash.toString(36);
+  }
 
-		while (start > 0 && this.processor.isTableLine(lines[start - 1])) {
-			start--;
-		}
+  private findTableAtCursor(
+    lines: string[],
+    cursorLine: number
+  ): { start: number; end: number } | null {
+    let start = cursorLine;
+    let end = cursorLine;
 
-		while (end < lines.length - 1 && this.processor.isTableLine(lines[end + 1])) {
-			end++;
-		}
+    while (start > 0 && this.processor.isTableLine(lines[start - 1])) {
+      start--;
+    }
 
-		if (this.processor.isTableLine(lines[cursorLine])) {
-			return { start, end };
-		}
+    while (
+      end < lines.length - 1 &&
+      this.processor.isTableLine(lines[end + 1])
+    ) {
+      end++;
+    }
 
-		return null;
-	}
+    if (this.processor.isTableLine(lines[cursorLine])) {
+      return { start, end };
+    }
 
-	private hasFormulas(table: string[]): boolean {
-		for (let i = 0; i < table.length; i++) {
-			const line = table[i];
-			const eqIndex = line.indexOf('=');
-			if (eqIndex > 0 && line[eqIndex - 1] === ' ') {
-				return true;
-			}
-		}
-		return false;
-	}
+    return null;
+  }
 
-	recalculateCurrentNote(editor: Editor, view: MarkdownView, silent: boolean = false): void {
-		const content = editor.getValue();
-		const lines = content.split('\n');
-		const file = view.file;
+  private hasFormulas(table: string[]): boolean {
+    for (let i = 0; i < table.length; i++) {
+      const line = table[i];
+      const eqIndex = line.indexOf('=');
+      if (eqIndex > 0 && line[eqIndex - 1] === ' ') {
+        return true;
+      }
+    }
+    return false;
+  }
 
-		if (!file) {
-			return;
-		}
+  recalculateCurrentNote(
+    editor: Editor,
+    view: MarkdownView,
+    silent: boolean = false
+  ): void {
+    const content = editor.getValue();
+    const lines = content.split('\n');
+    const file = view.file;
 
-		const noteName = file.basename;
-		
-		const contentHash = this.simpleHash(content);
-		const cachedHash = this.contentHashCache.get(noteName);
-		
-		if (cachedHash === contentHash && silent) {
-			return;
-		}
-		
-		this.contentHashCache.set(noteName, contentHash);
+    if (!file) {
+      return;
+    }
 
-		const metadata = this.app.metadataCache.getFileCache(file);
-		const noteVariables: { [key: string]: VaultIndexValue } = {};
+    const noteName = file.basename;
 
-		const cursorLine = editor.getCursor().line;
-		const cursorTable = this.findTableAtCursor(lines, cursorLine);
-		const isEditing = silent && cursorTable !== null;
+    const contentHash = this.simpleHash(content);
+    const cachedHash = this.contentHashCache.get(noteName);
 
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
+    if (cachedHash === contentHash && silent) {
+      return;
+    }
 
-			if (this.processor.isTableLine(line)) {
-				const tableData = this.processor.extractTable(lines, i);
-				if (tableData) {
-					const { table, startLine, endLine } = tableData;
-					
-					if (!this.hasFormulas(table)) {
-						i = endLine;
-						continue;
-					}
+    this.contentHashCache.set(noteName, contentHash);
 
-					if (isEditing && cursorTable && (startLine < cursorTable.start || startLine > cursorTable.end)) {
-						i = endLine;
-						continue;
-					}
+    const metadata = this.app.metadataCache.getFileCache(file);
+    const noteVariables: { [key: string]: VaultIndexValue } = {};
 
-					const tableKey = `${noteName}-${startLine}`;
-					const tableHash = this.simpleHash(table.join('\n'));
-					const cached = this.tableCache.get(tableKey);
-					
-					if (cached && cached.hash === tableHash) {
-						i = endLine;
-						continue;
-					}
-					
-					const parsedCells: string[][] = [];
-					for (let r = 0; r < table.length; r++) {
-						const parts = table[r].split('|');
-						const cells: string[] = [];
-						for (let c = 1; c < parts.length - 1; c++) {
-							cells.push(parts[c].trim());
-						}
-						parsedCells.push(cells);
-					}
-					
-					for (let r = 0; r < parsedCells.length; r++) {
-						const cells = parsedCells[r];
-						for (let c = 0; c < cells.length; c++) {
-							if (cells[c].charCodeAt(0) === 61) {
-								const cellKey = `${startLine + r}-${c}`;
-								this.indexManager.storeFormula(noteName, cellKey, cells[c]);
-							}
-						}
-					}
-					
-					const processedTable = this.processor.processTable(table, metadata, noteVariables);
-					
-					this.tableCache.set(tableKey, { hash: tableHash, processed: processedTable });
-					
-					for (let r = 0; r < processedTable.length; r++) {
-						const parts = processedTable[r].split('|');
-						for (let c = 1; c < parts.length - 1; c++) {
-							const cellKey = `${startLine + r}-${c - 1}`;
-							const formula = this.indexManager.getFormula(noteName, cellKey);
-							if (formula) {
-								this.indexManager.storeComputedValue(noteName, cellKey, parts[c].trim());
-							}
-						}
-					}
+    const cursorLine = editor.getCursor().line;
+    const cursorTable = this.findTableAtCursor(lines, cursorLine);
+    const isEditing = silent && cursorTable !== null;
 
-					i = endLine;
-				}
-			}
-		}
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
 
-		this.indexManager.updateNote(noteName, noteVariables);
-		if (Object.keys(noteVariables).length > 0) {
-			this.indexManager.save();
-		}
-	}
+      if (this.processor.isTableLine(line)) {
+        const tableData = this.processor.extractTable(lines, i);
+        if (tableData) {
+          const { table, startLine, endLine } = tableData;
+
+          if (!this.hasFormulas(table)) {
+            i = endLine;
+            continue;
+          }
+
+          if (
+            isEditing &&
+            cursorTable &&
+            (startLine < cursorTable.start || startLine > cursorTable.end)
+          ) {
+            i = endLine;
+            continue;
+          }
+
+          const tableKey = `${noteName}-${startLine}`;
+          const tableHash = this.simpleHash(table.join('\n'));
+          const cached = this.tableCache.get(tableKey);
+
+          if (cached && cached.hash === tableHash) {
+            i = endLine;
+            continue;
+          }
+
+          const parsedCells: string[][] = [];
+          for (let r = 0; r < table.length; r++) {
+            const parts = table[r].split('|');
+            const cells: string[] = [];
+            for (let c = 1; c < parts.length - 1; c++) {
+              cells.push(parts[c].trim());
+            }
+            parsedCells.push(cells);
+          }
+
+          for (let r = 0; r < parsedCells.length; r++) {
+            const cells = parsedCells[r];
+            for (let c = 0; c < cells.length; c++) {
+              if (cells[c].charCodeAt(0) === 61) {
+                const cellKey = `${startLine + r}-${c}`;
+                this.indexManager.storeFormula(noteName, cellKey, cells[c]);
+              }
+            }
+          }
+
+          const processedTable = this.processor.processTable(
+            table,
+            metadata,
+            noteVariables
+          );
+
+          this.tableCache.set(tableKey, {
+            hash: tableHash,
+            processed: processedTable,
+          });
+
+          for (let r = 0; r < processedTable.length; r++) {
+            const parts = processedTable[r].split('|');
+            for (let c = 1; c < parts.length - 1; c++) {
+              const cellKey = `${startLine + r}-${c - 1}`;
+              const formula = this.indexManager.getFormula(noteName, cellKey);
+              if (formula) {
+                this.indexManager.storeComputedValue(
+                  noteName,
+                  cellKey,
+                  parts[c].trim()
+                );
+              }
+            }
+          }
+
+          i = endLine;
+        }
+      }
+    }
+
+    this.indexManager.updateNote(noteName, noteVariables);
+    if (Object.keys(noteVariables).length > 0) {
+      void this.indexManager.save();
+    }
+  }
 }

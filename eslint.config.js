@@ -1,35 +1,44 @@
-import eslint from '@eslint/js';
-import tseslint from '@typescript-eslint/eslint-plugin';
-import tsparser from '@typescript-eslint/parser';
-import globals from 'globals';
+import obsidianmd from "eslint-plugin-obsidianmd";
+import prettierConfig from "eslint-config-prettier";
 
-export default [
+import globals from "globals";
+import { defineConfig, globalIgnores } from "eslint/config";
+import tsPlugin from "@typescript-eslint/eslint-plugin";
+import tsParser from "@typescript-eslint/parser";
+
+export default defineConfig([
+
+	globalIgnores([
+		"node_modules/",
+		"main.js",
+		"*.mjs"
+	]),
+	
 	{
-		ignores: ['node_modules/', 'main.js', '*.mjs']
-	},
-	eslint.configs.recommended,
-	{
-		files: ['**/*.ts'],
+		files: [ "**/*.ts" ],
 		languageOptions: {
-			parser: tsparser,
-			parserOptions: {
-				ecmaVersion: 2020,
-				sourceType: 'module'
-			},
 			globals: {
-				...globals.browser,
-				...globals.node
-			}
+				...globals.node,
+			},
+			parser: tsParser,
+			parserOptions: {
+				project: "./tsconfig.json",
+				sourceType: "module"
+			},
 		},
-		plugins: {
-			'@typescript-eslint': tseslint
+		plugins: { 
+			obsidianmd,
+			"@typescript-eslint": tsPlugin
 		},
+	},
+	...obsidianmd.configs.recommended,
+	{
 		rules: {
-			'no-unused-vars': 'off',
-			'@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-			'@typescript-eslint/no-explicit-any': 'warn',
-			'no-console': 'off'
-		}
-	}
-];
+			'obsidianmd/ui/sentence-case': ['warn', {
+				ignoreWords: ['en-US', 'de-DE', 'fr-FR'],
+			}],
+		},
+	},
+	prettierConfig
 
+]);
