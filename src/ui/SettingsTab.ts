@@ -34,10 +34,9 @@ export class TableMathSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Locale')
-      .setDesc('Locale for number formatting (en-US, de-DE, fr-FR)')
+      .setDesc('Language code for number formatting')
       .addText((text: TextComponent) =>
         text
-          .setPlaceholder('en-US')
           .setValue(this.plugin.settings.locale)
           .onChange(async (value: string) => {
             this.plugin.settings.locale = value;

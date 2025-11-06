@@ -32,13 +32,6 @@ export default defineConfig([
 		},
 	},
 	...obsidianmd.configs.recommended,
-	{
-		rules: {
-			'obsidianmd/ui/sentence-case': ['warn', {
-				ignoreWords: ['en-US', 'de-DE', 'fr-FR'],
-			}],
-		},
-	},
 	prettierConfig
 
 ]);
