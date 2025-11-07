@@ -1,4 +1,4 @@
-name: Release CSV Importer
+name: Release Table Math
 
 on:
   push:
