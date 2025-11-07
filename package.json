@@ -1,6 +1,6 @@
 {
   "name": "obsidian-table-math",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Spreadsheet-style table formulas for notes.",
   "type": "module",
   "main": "main.js",

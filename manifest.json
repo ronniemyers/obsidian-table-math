@@ -1,9 +1,9 @@
 {
 	"id": "table-math",
 	"name": "Table Math",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "1.4.0",
-	"description": "Spreadsheet-style table formulas for notes.",
+	"description": "Spreadsheet-style table formulas for notes",
 	"author": "Ronnie Myers",
 	"fundingUrl": "https://buymeacoffee.com/ronniemyers",
 	"isDesktopOnly": false
